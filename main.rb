@@ -38,29 +38,29 @@ end
 class Game
   VALUE_HUMAN = "X"
   VALUE_AI    = "O"
+  WIN_PATTERNS = [
+    [[0,0], [0,1], [0,2]],
+    [[1,0], [1,1], [1,2]],
+    [[2,0], [2,1], [2,2]],
+    [[0,0], [1,0], [2,0]],
+    [[0,1], [1,1], [2,1]],
+    [[0,2], [1,2], [2,2]],
+    [[0,0], [1,1], [2,2]],
+    [[0,2], [1,1], [2,0]],
+  ]
+  NEIGHBORS = [
+    [-1,-1],
+    [-1,0],
+    [-1,1],
+    [0,-1],
+    [0,1],
+    [1,-1],
+    [1,0],
+    [1,1]
+  ]
 
   def initialize
     @board = Board.new
-    @wins = [
-      [[0,0], [0,1], [0,2]],
-      [[1,0], [1,1], [1,2]],
-      [[2,0], [2,1], [2,2]],
-      [[0,0], [1,0], [2,0]],
-      [[0,1], [1,1], [2,1]],
-      [[0,2], [1,2], [2,2]],
-      [[0,0], [1,1], [2,2]],
-      [[0,2], [1,1], [2,0]],
-    ]
-    @vicinity = [
-      [-1,-1],
-      [-1,0],
-      [-1,1],
-      [0,-1],
-      [0,1],
-      [1,-1],
-      [1,0],
-      [1,1]
-    ]
   end
 
   def place(location)
@@ -79,7 +79,7 @@ class Game
     sleep 0.2
     row, col = @board.find(VALUE_AI)
     unless row != nil
-      @vicinity.each do |delta|
+      NEIGHBORS.each do |delta|
         trial_row = row + delta[0]
         trial_col = col + delta[1]
 
@@ -112,8 +112,8 @@ class Game
   end
 
   def is_win(value)
-    @wins.each do |win|
-      check = win.map{|location| @board.get_value(location[0], location[1]) == value }
+    WIN_PATTERNS.each do |pattern|
+      check = pattern.map{|location| @board.get_value(location[0], location[1]) == value }
       return true if check.all? true
     end
     false
