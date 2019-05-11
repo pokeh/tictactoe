@@ -1,11 +1,46 @@
 #!/usr/bin/env ruby
 
+class Board
+  def initialize
+    @array = Array.new(3) { Array.new(3) }
+  end
+
+  def get_value(row, col)
+    if (!row.between?(0, 2)) || (!col.between?(0, 2))
+      raise 'Row and col have to be between 0 and 2'
+    end
+    @array[row][col]
+  end
+
+  def set_value(row, col, value)
+    if @array[row][col]
+      raise 'Location already taken'
+    end
+    @array[row][col] = value
+  end
+
+  def find(target)
+    @array.each_with_index do |row, i|
+      row.each_with_index do |value, j|
+        return i, j if value == target
+      end
+    end
+  end
+
+  def print_values
+    @array.each do |row|
+      row.each {|value| print "|#{value}|" }
+      print "\n"
+    end
+  end
+end
+
 class Game
   VALUE_HUMAN = "X"
   VALUE_AI    = "O"
 
   def initialize
-    @board = Array.new(3) { Array.new(3) }
+    @board = Board.new
     @wins = [
       [[0,0], [0,1], [0,2]],
       [[1,0], [1,1], [1,2]],
@@ -30,16 +65,12 @@ class Game
 
   def place(location)
     row, col = location.split(",").map(&:to_i)
-    if (!row.between?(0, 2)) || (!col.between?(0, 2))
-      puts 'Row and col have to be between 0 and 2!'
-      return false
+    begin
+      @board.set_value(row.to_i, col.to_i, VALUE_HUMAN)
+    rescue => e
+      puts e.message
+      false
     end
-    if !@board[row][col].nil?
-      puts 'Location already taken!'
-      return false
-    end
-
-    @board[row.to_i][col.to_i] = VALUE_HUMAN
     true
   end
 
@@ -52,25 +83,15 @@ class Game
         trial_row = row + delta[0]
         trial_col = col + delta[1]
 
-        if @board[trial_row][trial_col]&.nil?
-          @board[trial_row][trial_col] = VALUE_AI
+        if @board.get_value(trial_row, trial_col)&.nil?
+          @board.set_value(trial_row, trial_col, VALUE_AI)
           return
         end
       end
     end
 
-    row, col = find(nil)
-    @board[row][col] = VALUE_AI
-  end
-
-  def find(target)
-    @board.each_with_index do |row, i|
-      row.each_with_index do |value, j|
-        return i, j if value == target
-      end
-    end
-
-    return nil
+    row, col = @board.find(nil)
+    @board.set_value(row, col, VALUE_AI)
   end
 
   def is_done
@@ -92,17 +113,14 @@ class Game
 
   def is_win(value)
     @wins.each do |win|
-      check = win.map{|location| @board[location[0]][location[1]] == value }
+      check = win.map{|location| @board.get_value(location[0], location[1]) == value }
       return true if check.all? true
     end
     false
   end
 
   def print_board
-    @board.each do |row|
-      row.each {|value| print "|#{value}|" }
-      print "\n"
-    end
+    @board.print_values
   end
 end
 
